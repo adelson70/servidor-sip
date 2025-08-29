@@ -1,5 +1,5 @@
 import dgram, { RemoteInfo, Socket } from "dgram";
-import { processSipMessage } from "./process-sip-message";
+import { processSipMessage } from "./sip-messages/process-sip-message";
 
 const server: Socket = dgram.createSocket("udp4");
 const PORT = 5060;

@@ -1,7 +1,7 @@
 import type { RemoteInfo } from "dgram";
-import { SipMessage } from "./types";
-import { handleRegister } from "./handle-methods/handle-REGISTER";
-import { sendMessage } from "./server";
+import { SipMessage } from "../types";
+import { handleRegister } from "../handle-methods/handle-REGISTER";
+import { sendMessage } from "../server";
 
 const methods: Record<string, (message: SipMessage) => Promise<string | void>> = {
     REGISTER: handleRegister
@@ -36,6 +36,8 @@ export const processSipMessage = async (msg: Buffer, rinfo: RemoteInfo): Promise
     };
 
     const response = await methods[message.method]?.(message);
+
+    console.log('response', response)
 
     if (response) {
         sendMessage(response, rinfo);
