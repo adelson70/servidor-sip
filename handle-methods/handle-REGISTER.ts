@@ -30,7 +30,8 @@ export const handleRegister = async (message: SipMessage) => {
     const authHeader = message.headers["Authorization"];
     const authParams = parseAuthorizationHeader(authHeader);
 
-    const password = getUserPassword(authParams.username);
+    const password = await getUserPassword(authParams.username);
+    
     if (!password) {
       console.log("❌ Usuário não encontrado:", authParams.username);
       return makeResponse({
