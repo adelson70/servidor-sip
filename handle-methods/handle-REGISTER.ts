@@ -6,7 +6,7 @@ import { db } from "../database";
 
 export const handleRegister = async (message: SipMessage) => {
   let response: string = "";
-  console.log("📋 Handling REGISTER:", message);
+  // console.log("📋 Handling REGISTER:", message);
 
   if (!message.headers["Authorization"]) {
     console.log("⚠️ Sem Authorization, enviando desafio!");
