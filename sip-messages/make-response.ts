@@ -1,9 +1,10 @@
 import crypto from "crypto";
+import { SipMethod } from "../types";
 
 export interface SipResponseOptions {
   status: number;                  // 200, 401, 403...
   reason: string;                  // OK, Unauthorized, Forbidden...
-  method: string;                  // REGISTER, INVITE...
+  method: SipMethod;               // REGISTER, INVITE...
   via: string;
   from: string;
   to: string;
@@ -14,10 +15,11 @@ export interface SipResponseOptions {
     realm: string;
     nonce?: string;
   };
+  allow?: SipMethod[];
 }
 
 export function makeResponse(opts: SipResponseOptions): string {
-  const { status, reason, method, via, from, to, callId, cseq, contact, authenticate } = opts;
+  const { status, reason, method, via, from, to, callId, cseq, contact, authenticate, allow } = opts;
 
   // monta as linhas comuns
   let response =

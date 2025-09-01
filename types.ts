@@ -14,9 +14,11 @@ export interface SipHeaders {
 
 export interface SipMessage {
   remoteInfo: RemoteInfo;
-  method: string;
+  method: SipMethod;
   uri: string;
   version: string;
   headers: SipHeaders;
   body?: string;
 }
+
+export type SipMethod = "REGISTER" | "OPTIONS" | "INVITE" | "BYE" | "CANCEL" | "ACK";
