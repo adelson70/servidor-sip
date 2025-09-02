@@ -16,10 +16,11 @@ export interface SipResponseOptions {
     nonce?: string;
   };
   allow?: SipMethod[];
+  message?: string;
 }
 
 export function makeResponse(opts: SipResponseOptions): string {
-  const { status, reason, method, via, from, to, callId, cseq, contact, authenticate, allow } = opts;
+  const { status, reason, method, via, from, to, callId, cseq, contact, authenticate, allow, message } = opts;
 
   // monta as linhas comuns
   let response =
@@ -42,8 +43,10 @@ CSeq: ${cseq}
     response += `WWW-Authenticate: Digest realm="${authenticate.realm}", nonce="${nonce}", algorithm=MD5, qop="auth"\n`;
   }
 
+  const body = message || "";
+
   // sempre fecha com Content-Length
-  response += `Content-Length: 0\n\n`;
+  response += `Content-Length: ${Buffer.byteLength(body)}\n\n${body}`;
 
   return response;
 }

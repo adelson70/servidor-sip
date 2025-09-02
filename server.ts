@@ -20,11 +20,6 @@ server.on("error", (err: Error) => {
 });
 
 server.on("message", (msg: Buffer, rinfo: RemoteInfo) => {
-    // msg é um Buffer, rinfo contém o endereço e porta do remetente
-    // console.log(`\n--- Mensagem Recebida de ${rinfo.address}:${rinfo.port} ---`);
-    // console.log(msg.toString());
-
-    // AQUI ENTRARÁ NOSSA LÓGICA
     processSipMessage(msg, rinfo);
 });
 

@@ -4,10 +4,12 @@ import { SipMessage } from "../types";
 import { handleRegister } from "../handle-methods/handle-REGISTER";
 import { handleOptions } from "../handle-methods/handle-OPTIONS";
 import { sendMessage } from "../server";
+import { handleInvite } from '../handle-methods/handle-INVITE';
 
 const methods: Record<string, (message: SipMessage) => Promise<string | void>> = {
     REGISTER: handleRegister,
-    OPTIONS: handleOptions
+    OPTIONS: handleOptions,
+    INVITE: handleInvite
 };
 
 export const processSipMessage = async (msg: Buffer, rinfo: RemoteInfo): Promise<void> => {

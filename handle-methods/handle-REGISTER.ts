@@ -94,15 +94,15 @@ export const handleRegister = async (message: SipMessage) => {
     id, uri, expiration_time, user_agent, via_addr, via_port, call_id, endpoint
   )
   VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-  ON CONFLICT (id)
+  ON CONFLICT (endpoint)
   DO UPDATE SET
+    id = EXCLUDED.id,
     uri = EXCLUDED.uri,
     expiration_time = EXCLUDED.expiration_time,
     user_agent = EXCLUDED.user_agent,
     via_addr = EXCLUDED.via_addr,
     via_port = EXCLUDED.via_port,
-    call_id = EXCLUDED.call_id,
-    endpoint = EXCLUDED.endpoint
+    call_id = EXCLUDED.call_id
   `,
         [contactId, contactUri, expirationTime, userAgent, viaAddr, viaPort, callId, endpoint]
       );
