@@ -4,9 +4,26 @@ import { db } from "../database";
 
 export const handleInvite = async (message: SipMessage) => {
     // console.log("📋 Received INVITE from:", message);
-
+    
+    const ramalRemetente = message.headers.From?.match(/sip:([^_@]+)/)?.[1];
     const ramalDestinatario = message.headers.To?.match(/sip:([^@]+)@/)?.[1];
     const tenant_id = message.headers.From?.match(/sip:[^_]+_([^@]+)@/)?.[1];
+
+    // se o ramal remetente e destinatario forem os mesmos gerar erro
+    if (ramalDestinatario === ramalRemetente) {
+        console.log("❌ Ramal remetente e destinatário são os mesmos:", ramalDestinatario);
+        return makeResponse({
+            status: 400,
+            reason: "Bad Request",
+            message: `Ramal remetente e destinatário não podem ser os mesmos`,
+            method: message.method,
+            via: message.headers["Via"] || "",
+            from: message.headers["From"] || "",
+            to: message.headers["To"] || "",
+            callId: message.headers["Call-ID"] || "",
+            cseq: message.headers["CSeq"] || ""
+        });
+    }
 
     const query = await db.query(`
   SELECT 
