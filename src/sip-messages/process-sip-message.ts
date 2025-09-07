@@ -3,7 +3,7 @@ import type { RemoteInfo } from "dgram";
 import { SipMessage } from "../types";
 import { handleRegister } from "../handle-methods/handle-REGISTER";
 import { handleOptions } from "../handle-methods/handle-OPTIONS";
-import { sendMessage } from "../main";
+// import { sendMessage } from "../main";
 import { handleInvite } from '../handle-methods/handle-INVITE';
 
 const methods: Record<string, (message: SipMessage) => Promise<string | void>> = {
@@ -105,7 +105,7 @@ export const processSipMessage = async (msg: Buffer, rinfo: RemoteInfo): Promise
 
     const response = await methods[message.method]?.(message);
 
-    if (response) {
-        sendMessage(response, rinfo);
-    }
+    // if (response) {
+    //     sendMessage(response, rinfo);
+    // }
 };
