@@ -6,11 +6,12 @@ import { buildSipString } from './sip-messages/build-message-sip';
 dotenv.config();
 
 const server: Socket = dgram.createSocket("udp4");
-const PORT = 5060;
+const PORT = process.env.SIP_PORT ? parseInt(process.env.SIP_PORT) : 5060;
 const HOST = "0.0.0.0";
+const DOMAIN = process.env.SIP_DOMAIN;
 
-const ASTERISK_IP = process.env.AST_HOST || "192.168.10.13";
-const ASTERISK_PORT = process.env.AST_PORT || 5070;
+const ASTERISK_IP = process.env.AST_HOST;
+const ASTERISK_PORT = process.env.AST_PORT;
 
 export const sendMessage = (message: string, rinfo: RemoteInfo, socke: Socket = server) => {
     const msgBuffer = Buffer.from(message);
@@ -47,8 +48,7 @@ server.on("message", (msg: Buffer, rinfo: RemoteInfo) => {
 });
 
 server.on("listening", () => {
-    const address = server.address();
-    console.log(`Servidor SIP ouvindo em ${address.address}:${address.port}`);
+    console.log(`Servidor SIP ouvindo em ${DOMAIN}:${PORT}`);
 });
 
 server.bind(PORT, HOST);

@@ -3,6 +3,9 @@ import { SipMessage } from "../types";
 import { makeResponse } from "../sip-messages/make-response";
 import { parseAuthorizationHeader, calculateDigestResponse, getUserPassword } from "../helpers/auth-helper";
 import { db } from "../database";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const handleRegister = async (message: SipMessage) => {
   let response: string = "";
@@ -11,7 +14,12 @@ export const handleRegister = async (message: SipMessage) => {
   if (!message.headers["Authorization"]) {
     console.log("⚠️ Sem Authorization, enviando desafio!");
 
-    const realm = "192.168.10.13";
+    const realm = process.env.SIP_DOMAIN;
+
+    if (!realm) {
+      throw new Error("SIP_DOMAIN não está definido nas variáveis de ambiente.");
+    }
+
     const nonce = crypto.randomBytes(16).toString("hex");
 
     response = makeResponse({
