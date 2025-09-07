@@ -28,7 +28,7 @@
 //     const sipString = buildSipString(sipMessage);
 
 //     const msgBuffer = Buffer.from(sipString);
-    
+
 //     socket.send(msgBuffer, Number(ASTERISK_PORT), ASTERISK_IP, (err) => {
 //         if (err) {
 //             console.error(`Erro ao enviar mensagem para o Asterisk:\n${err.stack}`);
@@ -80,36 +80,37 @@ const DRACHTIO_PORT = parseInt(process.env.DRACHTIO_PORT || '9022');
 const DRACHTIO_SECRET = process.env.DRACHTIO_SECRET || 'cymru';
 
 const methods: Record<string, Function> = {
-  REGISTER: handleRegister,
-  INVITE: handleInvite,
-  OPTIONS: handleOptions
+    REGISTER: handleRegister,
+    INVITE: handleInvite,
+    OPTIONS: handleOptions
 };
 
 // Conecta ao Drachtio server
 srf.connect({
-  host: DRACHTIO_HOST,
-  port: DRACHTIO_PORT,
-  secret: DRACHTIO_SECRET
+    host: DRACHTIO_HOST,
+    port: DRACHTIO_PORT,
+    secret: DRACHTIO_SECRET
 });
 
 srf.on('connect', (err, hp) => {
-  if (err) console.error('Erro ao conectar ao Drachtio:', err);
-  else console.log(`Conectado ao Drachtio: ${hp}`);
+    if (err) console.error('Erro ao conectar ao Drachtio:', err);
+    else console.log(`Conectado ao Drachtio: ${hp}`);
 });
 
 srf.on('error', (err) => {
-  console.error('Erro Drachtio:', err);
+    console.error('Erro Drachtio:', err);
 });
 
 srf.on('register', (req, res) => {
-  methods['REGISTER'](req, res);
+    console.log('📋 Received REGISTER from:', req);
+    methods['REGISTER'](req, res);
 });
 
 // Conecta ao banco
 db.connect().then(() => {
-  console.log('Conectado ao banco de dados com sucesso.');
+    console.log('Conectado ao banco de dados com sucesso.');
 }).catch((err) => {
-  console.error('Erro ao conectar ao banco de dados:', err);
+    console.error('Erro ao conectar ao banco de dados:', err);
 });
 
 // Registrar handlers de métodos SIP
