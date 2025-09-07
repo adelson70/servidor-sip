@@ -4,6 +4,7 @@ import { processSipMessage } from "./sip-messages/process-sip-message";
 import { SipMessage } from "./types";
 import { buildSipString } from './sip-messages/build-message-sip';
 dotenv.config();
+import { db } from './database';
 
 const server: Socket = dgram.createSocket("udp4");
 const PORT = process.env.SIP_PORT ? parseInt(process.env.SIP_PORT) : 5060;
@@ -49,6 +50,11 @@ server.on("message", (msg: Buffer, rinfo: RemoteInfo) => {
 
 server.on("listening", () => {
     console.log(`Servidor SIP ouvindo em ${DOMAIN}:${PORT}`);
+    db.connect().then(() => {
+        console.log('Conectado ao banco de dados com sucesso.');
+    }).catch((err) => {
+        console.error('Erro ao conectar ao banco de dados:', err);
+    });
 });
 
 server.bind(PORT, HOST);
