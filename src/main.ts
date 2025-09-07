@@ -113,32 +113,9 @@ srf.use((req, res, next) => {
   next();
 });
 
-// REGISTER com parser
-srf.use('register', regParser);
-srf.register(handleRegister);
-
-// INVITE
-srf.invite(handleInvite);
-
-// OPTIONS
-srf.options(handleOptions);
-
-// NOTIFY
-srf.notify((req, res) => {
-  console.log(`🔔 NOTIFY recebido de ${req.source_address}`);
-  res.send(200); // Sempre responder para evitar retransmissão
-});
-
-// BYE
-srf.bye((req, res) => {
-  console.log(`👋 BYE recebido de ${req.source_address}`);
-  res.send(200);
-});
-
-// Catch-all (se quiser tratar métodos não previstos)
-srf.request((req, res) => {
-  console.log(`⚠️ Método SIP não tratado: ${req.method}`);
-  res.send(501, { reason: 'Not Implemented' });
+srf.on('register', async (req, res) => {
+  console.log('📋 Requisição REGISTER recebida');
+  console.log('req', req);
 });
 
 console.log(`🚀 Servidor SIP pronto no domínio ${DOMAIN}`);
