@@ -40,6 +40,8 @@ export const processSipMessage = async (msg: Buffer, rinfo: RemoteInfo): Promise
         body: bodyPart?.trim() || undefined
     };
 
+    console.log(`📩 Mensagem SIP recebida de ${rinfo.address}:${rinfo.port} - Método: ${method}`);
+
     const response = await methods[message.method]?.(message);
 
     if (response) {
