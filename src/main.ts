@@ -1,3 +1,4 @@
+import { RegisterOptions } from './../node_modules/ts-node/dist/index.d';
 // import dotenv from 'dotenv';
 // import dgram, { RemoteInfo, Socket } from "dgram";
 // import { processSipMessage } from "./sip-messages/process-sip-message";
@@ -65,7 +66,11 @@
 
 import dotenv from 'dotenv';
 import Srf from 'drachtio-srf';
+// @ts-ignore
+import regParser from 'drachtio-mw-registration-parser';
 import { db } from './database';
+
+// Handlers customizados
 import { handleRegister } from './handle-methods/handle-REGISTER';
 import { handleInvite } from './handle-methods/handle-INVITE';
 import { handleOptions } from './handle-methods/handle-OPTIONS';
@@ -79,56 +84,61 @@ const DRACHTIO_HOST = '127.0.0.1';
 const DRACHTIO_PORT = parseInt(process.env.DRACHTIO_PORT || '9022');
 const DRACHTIO_SECRET = process.env.DRACHTIO_SECRET || 'cymru';
 
-const methods: Record<string, Function> = {
-    REGISTER: handleRegister,
-    INVITE: handleInvite,
-    OPTIONS: handleOptions
-};
-
-// Conecta ao Drachtio server
+// 🔌 Conexão com o Drachtio
 srf.connect({
-    host: DRACHTIO_HOST,
-    port: DRACHTIO_PORT,
-    secret: DRACHTIO_SECRET
+  host: DRACHTIO_HOST,
+  port: DRACHTIO_PORT,
+  secret: DRACHTIO_SECRET
 });
 
 srf.on('connect', (err, hp) => {
-    if (err) console.error('Erro ao conectar ao Drachtio:', err);
-    else console.log(`Conectado ao SIP CORE`);
+  if (err) console.error('Erro ao conectar ao Drachtio:', err);
+  else console.log(`✅ Conectado ao Drachtio em ${hp}`);
 });
 
 srf.on('error', (err) => {
-    console.error('Erro Drachtio:', err);
+  console.error('❌ Erro no Drachtio:', err);
 });
 
-srf.on('register', (req, res) => {
-    console.log('📋 Received REGISTER from:', req);
-    methods['REGISTER'](req, res);
+// Conexão com banco
+db.connect()
+  .then(() => console.log('✅ Conectado ao banco de dados.'))
+  .catch((err) => console.error('❌ Erro ao conectar ao banco:', err));
+
+// ---------- 📡 CAPTURA DE EVENTOS SIP ---------- //
+
+// Log básico de todas as requisições
+srf.use((req, res, next) => {
+  console.log(`📥 Recebido: ${req.method} de ${req.source_address}`);
+  next();
 });
 
-srf.on('request', (req, res) => {
-    console.log(`📋 Received ${req.method} from:`, req);
-    const handler = methods[req.method];
-    if (handler) {
-        handler(req, res);
-    } else {
-        console.log(`❌ Método SIP não suportado: ${req.method}`);
-        res.send(405, {
-            headers: {
-                'Allow': Object.keys(methods).join(', ')
-            }
-        });
-    }
+// REGISTER com parser
+srf.use('register', regParser);
+srf.register(handleRegister);
+
+// INVITE
+srf.invite(handleInvite);
+
+// OPTIONS
+srf.options(handleOptions);
+
+// NOTIFY
+srf.notify((req, res) => {
+  console.log(`🔔 NOTIFY recebido de ${req.source_address}`);
+  res.send(200); // Sempre responder para evitar retransmissão
 });
 
-// Conecta ao banco
-db.connect().then(() => {
-    console.log('Conectado ao banco de dados com sucesso.');
-}).catch((err) => {
-    console.error('Erro ao conectar ao banco de dados:', err);
+// BYE
+srf.bye((req, res) => {
+  console.log(`👋 BYE recebido de ${req.source_address}`);
+  res.send(200);
 });
 
-// Registrar handlers de métodos SIP
+// Catch-all (se quiser tratar métodos não previstos)
+srf.request((req, res) => {
+  console.log(`⚠️ Método SIP não tratado: ${req.method}`);
+  res.send(501, { reason: 'Not Implemented' });
+});
 
-
-console.log(`Servidor SIP pronto no domínio ${DOMAIN}`);
+console.log(`🚀 Servidor SIP pronto no domínio ${DOMAIN}`);
