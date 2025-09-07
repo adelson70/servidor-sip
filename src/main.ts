@@ -61,6 +61,8 @@
 // });
 
 // server.bind(PORT, HOST);
+
+
 import dotenv from 'dotenv';
 import Srf from 'drachtio-srf';
 import { db } from './database';
@@ -76,6 +78,12 @@ const DOMAIN = process.env.SIP_DOMAIN || 'localhost';
 const DRACHTIO_HOST = '127.0.0.1';
 const DRACHTIO_PORT = parseInt(process.env.DRACHTIO_PORT || '9022');
 const DRACHTIO_SECRET = process.env.DRACHTIO_SECRET || 'cymru';
+
+const methods: Record<string, Function> = {
+  REGISTER: handleRegister,
+  INVITE: handleInvite,
+  OPTIONS: handleOptions
+};
 
 // Conecta ao Drachtio server
 srf.connect({
@@ -93,6 +101,10 @@ srf.on('error', (err) => {
   console.error('Erro Drachtio:', err);
 });
 
+srf.on('register', (req, res) => {
+  methods['REGISTER'](req, res);
+});
+
 // Conecta ao banco
 db.connect().then(() => {
   console.log('Conectado ao banco de dados com sucesso.');
@@ -101,14 +113,6 @@ db.connect().then(() => {
 });
 
 // Registrar handlers de métodos SIP
-const methods: Record<string, Function> = {
-  REGISTER: handleRegister,
-  INVITE: handleInvite,
-  OPTIONS: handleOptions
-};
-
-// Manejar requisições SIP
-srf.invite(async (req, res) => methods['INVITE'](req, res));
 
 
 console.log(`Servidor SIP pronto no domínio ${DOMAIN}`);
