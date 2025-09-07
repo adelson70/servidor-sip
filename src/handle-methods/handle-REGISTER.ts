@@ -8,96 +8,97 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const handleRegister = async (message: SipMessage) => {
-  let response: string = "";
-  // console.log("📋 Handling REGISTER:", message);
+  try {
+    let response: string = "";
+    // console.log("📋 Handling REGISTER:", message);
 
-  if (!message.headers["Authorization"]) {
-    console.log("⚠️ Sem Authorization, enviando desafio!");
+    if (!message.headers["Authorization"]) {
+      console.log("⚠️ Sem Authorization, enviando desafio!");
 
-    const realm = process.env.SIP_DOMAIN;
+      const realm = process.env.SIP_DOMAIN;
 
-    if (!realm) {
-      throw new Error("SIP_DOMAIN não está definido nas variáveis de ambiente.");
-    }
+      if (!realm) {
+        throw new Error("SIP_DOMAIN não está definido nas variáveis de ambiente.");
+      }
 
-    const nonce = crypto.randomBytes(16).toString("hex");
+      const nonce = crypto.randomBytes(16).toString("hex");
 
-    response = makeResponse({
-      status: 401,
-      reason: "Unauthorized",
-      method: message.method,
-      via: message.headers["Via"] || "",
-      from: message.headers["From"] || "",
-      to: message.headers["To"] || "",
-      callId: message.headers["Call-ID"] || "",
-      cseq: message.headers["CSeq"] || "",
-      authenticate: { realm, nonce }
-    });
-  } else {
-    console.log("✅ Authorization recebido, validando...");
-
-    const authHeader = message.headers["Authorization"];
-    const authParams = parseAuthorizationHeader(authHeader);
-
-    const password = await getUserPassword(authParams.username);
-
-    if (!password) {
-      console.log("❌ Usuário não encontrado:", authParams.username);
-      return makeResponse({
-        status: 403,
-        reason: "Forbidden",
-        method: message.method,
-        via: message.headers["Via"] || "",
-        from: message.headers["From"] || "",
-        to: message.headers["To"] || "",
-        callId: message.headers["Call-ID"] || "",
-        cseq: message.headers["CSeq"] || ""
-      });
-    }
-
-    const expectedResponse = calculateDigestResponse(authParams, message.method, password);
-
-    if (expectedResponse === authParams.response) {
-      console.log("🎉 Autenticação OK para", authParams.username);
       response = makeResponse({
-        status: 200,
-        reason: "OK",
+        status: 401,
+        reason: "Unauthorized",
         method: message.method,
         via: message.headers["Via"] || "",
         from: message.headers["From"] || "",
         to: message.headers["To"] || "",
         callId: message.headers["Call-ID"] || "",
         cseq: message.headers["CSeq"] || "",
-        contact: message.headers["Contact"] || ""
+        authenticate: { realm, nonce }
       });
+    } else {
+      console.log("✅ Authorization recebido, validando...");
 
-      // upsert do contact
-      const expiresHeader = message.headers["Expires"];
-      const contactHeader = message.headers["Contact"] || "";
-      const contactExpiresMatch = contactHeader.match(/expires="?(\d+)"?/);
+      const authHeader = message.headers["Authorization"];
+      const authParams = parseAuthorizationHeader(authHeader);
 
-      const expires = expiresHeader
-        ? parseInt(expiresHeader, 10)
-        : contactExpiresMatch
-          ? parseInt(contactExpiresMatch[1], 10)
-          : 3600;
+      const password = await getUserPassword(authParams.username);
 
-      // epoch em milissegundos
-      const expirationTime = Date.now() + expires * 1000;
+      if (!password) {
+        console.log("❌ Usuário não encontrado:", authParams.username);
+        return makeResponse({
+          status: 403,
+          reason: "Forbidden",
+          method: message.method,
+          via: message.headers["Via"] || "",
+          from: message.headers["From"] || "",
+          to: message.headers["To"] || "",
+          callId: message.headers["Call-ID"] || "",
+          cseq: message.headers["CSeq"] || ""
+        });
+      }
 
-      const contactUri = contactHeader.match(/<([^>]+)>/)?.[1] || "";
-      const userAgent = message.headers["User-Agent"] || "";
-      const viaAddr = message.headers["Via"]?.match(/SIP\/2.0\/UDP\s+([\d.]+)/)?.[1] || message.remoteInfo.address;
-      const viaPort = (
-        message.headers["Via"]?.match(/SIP\/2.0\/UDP\s+[\d.]+:(\d+)/)?.[1] || message.remoteInfo.port,
-        10
-      );
-      const callId = message.headers["Call-ID"] || "";
-      const endpoint = authParams.username;
-      const contactId = `${endpoint}@${viaAddr}:${viaPort}`;
+      const expectedResponse = calculateDigestResponse(authParams, message.method, password);
 
-      await db.query(
-        `
+      if (expectedResponse === authParams.response) {
+        console.log("🎉 Autenticação OK para", authParams.username);
+        response = makeResponse({
+          status: 200,
+          reason: "OK",
+          method: message.method,
+          via: message.headers["Via"] || "",
+          from: message.headers["From"] || "",
+          to: message.headers["To"] || "",
+          callId: message.headers["Call-ID"] || "",
+          cseq: message.headers["CSeq"] || "",
+          contact: message.headers["Contact"] || ""
+        });
+
+        // upsert do contact
+        const expiresHeader = message.headers["Expires"];
+        const contactHeader = message.headers["Contact"] || "";
+        const contactExpiresMatch = contactHeader.match(/expires="?(\d+)"?/);
+
+        const expires = expiresHeader
+          ? parseInt(expiresHeader, 10)
+          : contactExpiresMatch
+            ? parseInt(contactExpiresMatch[1], 10)
+            : 3600;
+
+        // epoch em milissegundos
+        const expirationTime = Date.now() + expires * 1000;
+
+        const contactUri = contactHeader.match(/<([^>]+)>/)?.[1] || "";
+        const userAgent = message.headers["User-Agent"] || "";
+        const viaAddr = message.headers["Via"]?.match(/SIP\/2.0\/UDP\s+([\d.]+)/)?.[1] || message.remoteInfo.address;
+        const viaPort = (
+          message.headers["Via"]?.match(/SIP\/2.0\/UDP\s+[\d.]+:(\d+)/)?.[1] || message.remoteInfo.port,
+          10
+        );
+        const callId = message.headers["Call-ID"] || "";
+        const endpoint = authParams.username;
+        const contactId = `${endpoint}@${viaAddr}:${viaPort}`;
+
+        await db.query(
+          `
   INSERT INTO ps_contacts (
     id, uri, expiration_time, user_agent, via_addr, via_port, call_id, endpoint
   )
@@ -112,26 +113,39 @@ export const handleRegister = async (message: SipMessage) => {
     via_port = EXCLUDED.via_port,
     call_id = EXCLUDED.call_id
   `,
-        [contactId, contactUri, expirationTime, userAgent, viaAddr, viaPort, callId, endpoint]
-      );
+          [contactId, contactUri, expirationTime, userAgent, viaAddr, viaPort, callId, endpoint]
+        );
 
 
 
 
-    } else {
-      console.log("❌ Response inválido!");
-      response = makeResponse({
-        status: 403,
-        reason: "Forbidden",
-        method: message.method,
-        via: message.headers["Via"] || "",
-        from: message.headers["From"] || "",
-        to: message.headers["To"] || "",
-        callId: message.headers["Call-ID"] || "",
-        cseq: message.headers["CSeq"] || ""
-      });
+      } else {
+        console.log("❌ Response inválido!");
+        response = makeResponse({
+          status: 403,
+          reason: "Forbidden",
+          method: message.method,
+          via: message.headers["Via"] || "",
+          from: message.headers["From"] || "",
+          to: message.headers["To"] || "",
+          callId: message.headers["Call-ID"] || "",
+          cseq: message.headers["CSeq"] || ""
+        });
+      }
     }
-  }
 
-  return response;
+    return response;
+  } catch (error) {
+    console.error("Erro ao processar REGISTER:", error);
+    return makeResponse({
+      status: 500,
+      reason: "Internal Server Error",
+      method: message.method,
+      via: message.headers["Via"] || "",
+      from: message.headers["From"] || "",
+      to: message.headers["To"] || "",
+      callId: message.headers["Call-ID"] || "",
+      cseq: message.headers["CSeq"] || ""
+    });
+  }
 };
