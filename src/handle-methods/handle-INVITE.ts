@@ -1,7 +1,7 @@
 import { makeResponse } from "../sip-messages/make-response";
 import { SipMessage } from "../types";
 import { db } from "../database";
-import { sendToAsterisk } from "../server";
+import { sendToAsterisk } from "../main";
 
 export const handleInvite = async (message: SipMessage) => {
     // console.log("📋 Received INVITE from:", message);

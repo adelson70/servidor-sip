@@ -4,7 +4,8 @@
   "main": "server.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec ts-node server.ts"
+    "dev": "nodemon --exec ts-node server.ts",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node20 --outfile=dist/main.js"
   },
   "repository": {
     "type": "git",

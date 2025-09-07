@@ -1,9 +1,9 @@
-import { SipMethod } from './../types';
+import { SipMethod } from '../types';
 import type { RemoteInfo } from "dgram";
 import { SipMessage } from "../types";
 import { handleRegister } from "../handle-methods/handle-REGISTER";
 import { handleOptions } from "../handle-methods/handle-OPTIONS";
-import { sendMessage } from "../server";
+import { sendMessage } from "../main";
 import { handleInvite } from '../handle-methods/handle-INVITE';
 
 const methods: Record<string, (message: SipMessage) => Promise<string | void>> = {
