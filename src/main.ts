@@ -107,15 +107,10 @@ db.connect()
 
 // ---------- 📡 CAPTURA DE EVENTOS SIP ---------- //
 
-// Log básico de todas as requisições
-srf.use((req, res, next) => {
-  console.log(`📥 Recebido: ${req.method} de ${req.source_address}`);
-  next();
-});
+srf.use(regParser());
 
-srf.on('register', async (req, res) => {
-  console.log('📋 Requisição REGISTER recebida');
-  console.log('req', req);
+srf.on('register', (req, res) => {
+  console.log('📋 Received REGISTER from:', req);
 });
 
 console.log(`🚀 Servidor SIP pronto no domínio ${DOMAIN}`);
