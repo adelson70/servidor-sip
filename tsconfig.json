@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "target": "ES2020",             // Versão do JS de saída
-    "module": "commonjs",           // Para rodar no Node.js
-    "rootDir": "src",               // Pasta onde está o código TS
-    "outDir": "dist",               // Pasta de saída
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true
+    "target": "ES2020",                 // Versão do JS de saída
+    "module": "commonjs",               // Para Node.js
+    "rootDir": "src",                   // Pasta raiz do seu TS
+    "outDir": "dist",                   // Pasta de saída compilada
+    "strict": true,                     // Ativa todas as checagens estritas
+    "esModuleInterop": true,            // Para importar módulos CommonJS
+    "forceConsistentCasingInFileNames": true, // Evita problemas de case sensitivo
+    "skipLibCheck": true,               // Ignora checagem de tipos de bibliotecas externas
+    "moduleResolution": "node",         // Resolving modules like Node.js
+    "resolveJsonModule": true,          // Permite importar arquivos JSON
+    "typeRoots": ["./src/types", "./node_modules/@types"] // Tipos custom e de node_modules
   },
   "include": ["src/**/*"]
 }

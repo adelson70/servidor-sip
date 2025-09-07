@@ -64,53 +64,110 @@ import { RegisterOptions } from './../node_modules/ts-node/dist/index.d';
 // server.bind(PORT, HOST);
 
 
+// server.ts
 import dotenv from 'dotenv';
-import Srf from 'drachtio-srf';
+import Srf, { SrfRequest, SrfResponse } from 'drachtio-srf';
 // @ts-ignore
 import regParser from 'drachtio-mw-registration-parser';
-import { db } from './database';
-
-// Handlers customizados
-import { handleRegister } from './handle-methods/handle-REGISTER';
-import { handleInvite } from './handle-methods/handle-INVITE';
-import { handleOptions } from './handle-methods/handle-OPTIONS';
 
 dotenv.config();
 
 const srf = new Srf();
-
 const DOMAIN = process.env.SIP_DOMAIN || 'localhost';
-const DRACHTIO_HOST = '127.0.0.1';
+const DRACHTIO_HOST = process.env.DRACHTIO_HOST || '127.0.0.1';
 const DRACHTIO_PORT = parseInt(process.env.DRACHTIO_PORT || '9022');
 const DRACHTIO_SECRET = process.env.DRACHTIO_SECRET || 'cymru';
 
-// 🔌 Conexão com o Drachtio
+// ------------------------
+// Conexão com o Drachtio
+// ------------------------
 srf.connect({
   host: DRACHTIO_HOST,
   port: DRACHTIO_PORT,
   secret: DRACHTIO_SECRET
 });
 
-srf.on('connect', (err, hp) => {
-  if (err) console.error('Erro ao conectar ao Drachtio:', err);
-  else console.log(`✅ Conectado ao Drachtio em ${hp}`);
+srf.on('connect', (_err, hp) => {
+  console.log(`✅ Conectado ao Drachtio em ${hp}`);
 });
 
 srf.on('error', (err) => {
   console.error('❌ Erro no Drachtio:', err);
 });
 
-// Conexão com banco
-db.connect()
-  .then(() => console.log('✅ Conectado ao banco de dados.'))
-  .catch((err) => console.error('❌ Erro ao conectar ao banco:', err));
-
-// ---------- 📡 CAPTURA DE EVENTOS SIP ---------- //
-
-srf.use(regParser());
-
-srf.on('register', (req, res) => {
-  console.log('📋 Received REGISTER from:', req);
+// ------------------------
+// Middleware geral (log de requisições)
+// ------------------------
+srf.use((req, res, next) => {
+  console.log(`📥 Método SIP recebido: ${req.method} de ${req.source_address}`);
+  if (typeof next === 'function') next();
 });
 
+// ------------------------
+// REGISTER
+// ------------------------
+srf.use('register', regParser());
+
+// @ts-ignore
+srf.register((req: SrfRequest, res: SrfResponse) => {
+  if (!req.registration) {
+    console.warn('⚠️ req.registration não definido!');
+    return res.send(503);
+  }
+
+  console.log('📋 REGISTER recebido:', req.registration);
+
+  res.send(200, {
+    headers: {
+      'Contact': req.registration.contact,
+      'Expires': req.registration.expires || 3600
+    }
+  });
+});
+
+// ------------------------
+// INVITE
+// ------------------------
+srf.invite((req: SrfRequest, res: SrfResponse) => {
+  console.log('📞 INVITE recebido de', req.callingNumber || req.source_address);
+
+  // Apenas responde 180 Ringing e 200 OK de teste
+  res.send(180, {
+    headers: { 'Contact': `<sip:${DOMAIN}>` }
+  });
+
+  res.send(200, {
+    headers: { 'Contact': `<sip:${DOMAIN}>` },
+    body: 'Teste SDP ou mensagem'
+  });
+});
+
+// ------------------------
+// OPTIONS
+// ------------------------
+// @ts-ignore
+srf.options((req: SrfRequest, res: SrfResponse) => {
+  console.log('⚙️ OPTIONS recebido de', req.source_address);
+  res.send(200, { headers: { Allow: 'INVITE,ACK,CANCEL,BYE,OPTIONS,REGISTER,NOTIFY' } });
+});
+
+// ------------------------
+// BYE
+// ------------------------
+// @ts-ignore
+srf.bye((req: SrfRequest, res: SrfResponse) => {
+  console.log('📴 BYE recebido de', req.source_address);
+  res.send(200);
+});
+
+// ------------------------
+// NOTIFY
+// ------------------------
+// @ts-ignore
+srf.notify((req: SrfRequest, res: SrfResponse) => {
+  console.log('🔔 NOTIFY recebido de', req.source_address);
+  res.send(200);
+});
+
+// ------------------------
 console.log(`🚀 Servidor SIP pronto no domínio ${DOMAIN}`);
