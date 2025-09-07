@@ -46,7 +46,8 @@ server.on("error", (err: Error) => {
 
 server.on("message", (msg: Buffer, rinfo: RemoteInfo) => {
     console.log('message received');
-    console.log(msg.toString());
+    console.log('msg', msg);
+    console.log('rinfo', rinfo);
     processSipMessage(msg, rinfo);
 });
 
