@@ -94,7 +94,7 @@ srf.connect({
 
 srf.on('connect', (err, hp) => {
     if (err) console.error('Erro ao conectar ao Drachtio:', err);
-    else console.log(`Conectado ao Drachtio: ${hp}`);
+    else console.log(`Conectado ao SIP CORE`);
 });
 
 srf.on('error', (err) => {
@@ -104,6 +104,21 @@ srf.on('error', (err) => {
 srf.on('register', (req, res) => {
     console.log('📋 Received REGISTER from:', req);
     methods['REGISTER'](req, res);
+});
+
+srf.on('request', (req, res) => {
+    console.log(`📋 Received ${req.method} from:`, req);
+    const handler = methods[req.method];
+    if (handler) {
+        handler(req, res);
+    } else {
+        console.log(`❌ Método SIP não suportado: ${req.method}`);
+        res.send(405, {
+            headers: {
+                'Allow': Object.keys(methods).join(', ')
+            }
+        });
+    }
 });
 
 // Conecta ao banco
