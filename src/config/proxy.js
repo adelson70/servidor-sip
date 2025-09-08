@@ -2,7 +2,7 @@ const dgram = require("dgram");
 require('dotenv').config();
 
 const ambient = process.env.NODE_ENV || 'development';
-const DOMAIN = ambient === 'production' ? process.env.SIP_DOMAIN_PROD : process.env.SIP_DOMAIN_DEV;
+const DOMAIN = ambient === 'production' ? process.env.SIP_DOMAIN_PROD : '127.0.0.1';
 const DRACHTIO_PORT = parseInt(process.env.DRACHTIO_PORT || '9022');
 
 const proxy = dgram.createSocket("udp4");
