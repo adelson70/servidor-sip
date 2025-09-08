@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const { db } = require("../../config/database");
 const { parseAuthorizationHeader, calculateDigestResponse, getUserPassword } = require("./auth.register");
+const { logSuspicious } = require("../../helpers/fail2ban");
 
 async function handleRegister(req, res) {
   try {
@@ -24,7 +25,7 @@ async function handleRegister(req, res) {
     const password = await getUserPassword(authParams.username);
 
     if (!password) {
-      console.log("❌ Usuário não encontrado:", authParams.username);
+      console.log("❌ Usuário não encontrado:", authParams.username, req.source_address);
       return res.send(403);
     }
 
@@ -32,6 +33,7 @@ async function handleRegister(req, res) {
 
     if (expectedResponse !== authParams.response) {
       console.log("❌ Response inválido para", authParams.username);
+      logSuspicious(req.source_address, "Failed REGISTER - invalid response");
       return res.send(403);
     }
 
