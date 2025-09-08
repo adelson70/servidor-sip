@@ -20,8 +20,8 @@ proxy.on("message", (msg, rinfo) => {
   });
 });
 
-proxy.bind(5060, () => {
-  console.log("Proxy SIP escutando na porta 5060");
+const proxyConnected = proxy.bind(5060, () => {
+  console.log("✅ Proxy UDP ativo na porta 5060");
 });
 
-module.exports = { proxy };
+module.exports = { proxyConnected };
