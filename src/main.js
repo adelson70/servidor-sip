@@ -5,8 +5,6 @@ const { db } = require('./config/database');
 const { handleRegister } = require('./methods/register');
 const { handleInvite } = require('./methods/invite');
 
-const { proxyConnected } = require('./config/proxy');
-
 const srf = new Srf();
 
 const ambient = process.env.NODE_ENV || 'development';
@@ -16,8 +14,6 @@ const DOMAIN = ambient === 'production' ? process.env.SIP_DOMAIN_PROD : process.
 // Configurações do Drachtio
 const DRACHTIO_PORT = parseInt(process.env.DRACHTIO_PORT || '9022');
 const DRACHTIO_SECRET = process.env.DRACHTIO_SECRET || 'cymru';
-
-proxyConnected;
 
 // ------------------------
 // Conexão com o Drachtio
