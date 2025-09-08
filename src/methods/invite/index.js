@@ -12,7 +12,7 @@ async function handleInvite(req, res) {
     // verifica se o ramal de origem esta no banco de dados
     const ramalOrigemExists = await db.query(`
       SELECT id, tenantid FROM ps_endpoints WHERE id = $1 AND tenantid = $2
-    `, [ramalOrigem, tenant]);
+    `, [`${ramalOrigem}_${tenant}`, tenant]);
 
     if (ramalOrigemExists.rowCount === 0) {
       console.log("❌ Ramal de origem não encontrado ou inválido:", ramalOrigem, "para tenant", tenant);
