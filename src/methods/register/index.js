@@ -26,6 +26,7 @@ async function handleRegister(req, res) {
 
     if (!password) {
       console.log("❌ Usuário não encontrado:", authParams.username, req.source_address);
+      logSuspicious(req.source_address, "Failed REGISTER - user not found");
       return res.send(403);
     }
 
@@ -33,7 +34,6 @@ async function handleRegister(req, res) {
 
     if (expectedResponse !== authParams.response) {
       console.log("❌ Response inválido para", authParams.username);
-      logSuspicious(req.source_address, "Failed REGISTER - invalid response");
       return res.send(403);
     }
 
