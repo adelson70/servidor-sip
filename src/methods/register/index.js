@@ -51,10 +51,10 @@ async function handleRegister(req, res) {
 
     const expirationTime = Date.now() + expires * 1000;
     const contactUri = contactHeader.match(/<([^>]+)>/)?.[1] || "";
-    const userAgent = req.msg.headers["User-Agent"] || "";
-    const viaAddr = req.msg.headers["Via"]?.match(/SIP\/2.0\/UDP\s+([\d.]+)/)?.[1] || req.source_address;
-    const viaPort = parseInt(req.msg.headers["Via"]?.match(/SIP\/2.0\/UDP\s+[\d.]+:(\d+)/)?.[1] || "5060", 10);
-    const callId = req.msg.headers["Call-ID"] || "";
+    const userAgent = req.msg.headers["user-agent"] || "";
+    const viaAddr = req.msg.headers["via"]?.match(/SIP\/2.0\/UDP\s+([\d.]+)/)?.[1] || req.source_address;
+    const viaPort = parseInt(req.msg.headers["via"]?.match(/SIP\/2.0\/UDP\s+[\d.]+:(\d+)/)?.[1] || "5060", 10);
+    const callId = req.msg.headers["call-id"] || "";
     const endpoint = authParams.username;
     const contactId = `${endpoint}@${viaAddr}:${viaPort}`;
 
