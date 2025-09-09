@@ -23,8 +23,6 @@ proxy.on("message", (msg, rinfo) => {
           console.log(`📤 Resposta enviada para ${lastClient.address}:${lastClient.port}`);
         }
       });
-    } else {
-      console.log("⚠️ Recebi resposta do drachtio mas não há cliente registrado para enviar");
     }
   } else {
     // Mensagem vinda de cliente → salvar e repassar para drachtio
@@ -32,8 +30,6 @@ proxy.on("message", (msg, rinfo) => {
     proxy.send(msg, DRACHTIO_SIP_PORT, DOMAIN, (err) => {
       if (err) {
         console.error("Erro ao reenviar mensagem:", err);
-      } else {
-        console.log(`Mensagem reenviada para ${DOMAIN}:${DRACHTIO_SIP_PORT}`);
       }
     });
   }
