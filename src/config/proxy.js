@@ -13,7 +13,7 @@ const proxy = dgram.createSocket("udp4");
 const clients = new Map();
 
 proxy.on("message", (msg, rinfo) => {
-  const clientKey = `${rinfo.address}:${rinfo.port}`;
+  const callId = msg.toString().match(/call-id:\s*(.+?)\s*/i);
 
   // Whitelist rápida em memória
   if (!getIp(rinfo.address)) {
@@ -26,14 +26,16 @@ proxy.on("message", (msg, rinfo) => {
     // Aqui você precisa decidir como identificar o cliente correto.
     // Se tiver apenas 1 cliente por vez:
     clients.forEach((client, key) => {
-      proxy.send(msg, client.port, client.address, (err) => {
-        if (!err) console.log(`📤 Resposta enviada para ${client.address}:${client.port}`);
-      });
-      clients.delete(key); // remove imediatamente da memória
+      if (key === callId) {
+        proxy.send(msg, client.port, client.address, (err) => {
+          if (!err) console.log(`📤 Resposta enviada para ${client.address}:${client.port}`);
+        });
+        clients.delete(key); // remove imediatamente da memória
+      }
     });
   } else {
     // Mensagem de cliente → salvar temporariamente e repassar para drachtio
-    clients.set(clientKey, { address: rinfo.address, port: rinfo.port });
+    clients.set(callId, { address: rinfo.address, port: rinfo.port });
     proxy.send(msg, DRACHTIO_SIP_PORT, DOMAIN, (err) => {
       if (err) console.error(err);
     });

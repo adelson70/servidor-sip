@@ -1,7 +1,6 @@
 const crypto = require("crypto");
 const { db } = require("../../config/database");
 const { parseAuthorizationHeader, calculateDigestResponse, getUserPassword } = require("./auth.register");
-const { logSuspicious } = require("../../helpers/fail2ban");
 
 const ambient = process.env.NODE_ENV || 'development';
 
