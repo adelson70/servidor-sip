@@ -1,6 +1,8 @@
 const dgram = require("dgram");
 require("dotenv").config();
 
+const { getIp } = require("../helpers/fail2ban");
+
 const ambient = process.env.NODE_ENV || "development";
 const DOMAIN = ambient === "production" ? process.env.SIP_DOMAIN_PROD : "127.0.0.1";
 const DRACHTIO_SIP_PORT = parseInt(process.env.DRACHTIO_SIP_PORT || "8453", 10);
@@ -12,6 +14,8 @@ let lastClient = null;
 
 proxy.on("message", (msg, rinfo) => {
   console.log(`${rinfo.address}:${rinfo.port}`);
+
+  console.log(getIp(rinfo.address));
 
   if (rinfo.address === "127.0.0.1" && rinfo.port === DRACHTIO_SIP_PORT) {
     // Mensagem vinda do drachtio → devolver para o último cliente

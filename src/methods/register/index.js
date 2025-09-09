@@ -28,7 +28,6 @@ async function handleRegister(req, res) {
 
     if (!password) {
       console.log("❌ Usuário não encontrado:", authParams.username, req.source_address);
-      if (ambient === 'production') logSuspicious(req.source_address, "Failed REGISTER - user not found");
       return res.send(403);
     }
 
