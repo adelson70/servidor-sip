@@ -40,4 +40,12 @@ proxy.on("message", (msg, rinfo) => {
   }
 });
 
-proxy.bind(5060, () => console.log("✅ Proxy UDP ativo na porta 5060"));
+const proxyConnected = (workerPrefix) => {
+  proxy.on("listening", () => {
+    const address = proxy.address();
+    console.log(`${workerPrefix} ✅ Proxy UDP ativo na porta ${address.port}`);
+  });
+
+};
+
+module.exports = { proxyConnected };
