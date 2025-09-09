@@ -17,7 +17,7 @@ proxy.on("message", (msg, rinfo) => {
         }
 
         // Evita loop: ignora mensagens vindas do próprio drachtio
-        if (rinfo.address === "127.0.0.1" && rinfo.port === DRACHTIO_SIP_PORT) {
+        if (rinfo.address === "127.0.0.1" && rinfo.port === DRACHTIO_PORT_SIP) {
             console.log("🔄 Ignorado pacote vindo do próprio drachtio (loop prevention)");
             return;
         }
