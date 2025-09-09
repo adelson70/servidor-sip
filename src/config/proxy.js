@@ -1,33 +1,44 @@
 const dgram = require("dgram");
-require('dotenv').config();
+require("dotenv").config();
 
-const ambient = process.env.NODE_ENV || 'development';
-const DOMAIN = ambient === 'production' ? process.env.SIP_DOMAIN_PROD : '127.0.0.1';
-const DRACHTIO_PORT_SIP = parseInt(process.env.DRACHTIO_PORT_SIP || '8453');
+const ambient = process.env.NODE_ENV || "development";
+const DOMAIN = ambient === "production" ? process.env.SIP_DOMAIN_PROD : "127.0.0.1";
+const DRACHTIO_SIP_PORT = parseInt(process.env.DRACHTIO_SIP_PORT || "8453", 10);
 
 const proxy = dgram.createSocket("udp4");
 
+// Mantém o último cliente que enviou mensagem
+let lastClient = null;
+
 proxy.on("message", (msg, rinfo) => {
-    console.log(`${rinfo.address}:${rinfo.port}`);
+  console.log(`${rinfo.address}:${rinfo.port}`);
 
-    proxy.send(msg, DRACHTIO_PORT_SIP, DOMAIN, (err) => {
-
+  if (rinfo.address === "127.0.0.1" && rinfo.port === DRACHTIO_SIP_PORT) {
+    // Mensagem vinda do drachtio → devolver para o último cliente
+    if (lastClient) {
+      proxy.send(msg, lastClient.port, lastClient.address, (err) => {
         if (err) {
-            console.error("Erro ao reenviar mensagem:", err);
+          console.error("Erro ao enviar resposta para cliente:", err);
+        } else {
+          console.log(`📤 Resposta enviada para ${lastClient.address}:${lastClient.port}`);
         }
-
-        // Evita loop: ignora mensagens vindas do próprio drachtio
-        if (rinfo.address === "127.0.0.1" && rinfo.port === DRACHTIO_PORT_SIP) {
-            console.log("🔄 Ignorado pacote vindo do próprio drachtio (loop prevention)");
-            return;
-        }
-
-        console.log(`Mensagem reenviada para ${DOMAIN}:${DRACHTIO_PORT_SIP}`);
+      });
+    } else {
+      console.log("⚠️ Recebi resposta do drachtio mas não há cliente registrado para enviar");
+    }
+  } else {
+    // Mensagem vinda de cliente → salvar e repassar para drachtio
+    lastClient = { address: rinfo.address, port: rinfo.port };
+    proxy.send(msg, DRACHTIO_SIP_PORT, DOMAIN, (err) => {
+      if (err) {
+        console.error("Erro ao reenviar mensagem:", err);
+      } else {
+        console.log(`Mensagem reenviada para ${DOMAIN}:${DRACHTIO_SIP_PORT}`);
+      }
     });
+  }
 });
 
-const proxyConnected = proxy.bind(5060, () => {
-    console.log("✅ Proxy UDP ativo na porta 5060");
+proxy.bind(5060, () => {
+  console.log("✅ Proxy UDP ativo na porta 5060");
 });
-
-module.exports = { proxyConnected };
