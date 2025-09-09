@@ -10,7 +10,7 @@ const proxy = dgram.createSocket("udp4");
 proxy.on("message", (msg, rinfo) => {
   console.log(`${rinfo.address}:${rinfo.port}`);
 
-  proxy.send(msg, DOMAIN, DRACHTIO_PORT, (err) => {
+  proxy.send(msg, DRACHTIO_PORT, DOMAIN, (err) => {
 
     if (err) {
       console.error("Erro ao reenviar mensagem:", err);
