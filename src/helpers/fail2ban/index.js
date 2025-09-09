@@ -22,4 +22,8 @@ const getIp = (ip) => {
   return firewall.whitelist[ip];
 }
 
-module.exports = { getIp };
+const addSuspicious = (ip) => {
+  firewall.suspicious.push(ip);
+}
+
+module.exports = { getIp, addSuspicious };
