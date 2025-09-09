@@ -3,6 +3,8 @@ const { db } = require("../../config/database");
 const { parseAuthorizationHeader, calculateDigestResponse, getUserPassword } = require("./auth.register");
 const { logSuspicious } = require("../../helpers/fail2ban");
 
+const ambient = process.env.NODE_ENV || 'development';
+
 async function handleRegister(req, res) {
   try {
     const authHeader = req.msg.headers["authorization"];
@@ -11,7 +13,7 @@ async function handleRegister(req, res) {
     if (!authHeader) {
       const nonce = crypto.randomBytes(16).toString("hex");
 
-      const DOMAIN = process.env.NODE_ENV === 'production' ? process.env.SIP_DOMAIN_PROD : process.env.SIP_DOMAIN_DEV;
+      const DOMAIN = ambient === 'production' ? process.env.SIP_DOMAIN_PROD : process.env.SIP_DOMAIN_DEV;
 
       return res.send(401, {
         headers: {
@@ -26,7 +28,7 @@ async function handleRegister(req, res) {
 
     if (!password) {
       console.log("❌ Usuário não encontrado:", authParams.username, req.source_address);
-      logSuspicious(req.source_address, "Failed REGISTER - user not found");
+      if (ambient === 'production') logSuspicious(req.source_address, "Failed REGISTER - user not found");
       return res.send(403);
     }
 

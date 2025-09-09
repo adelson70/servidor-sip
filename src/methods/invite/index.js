@@ -1,5 +1,8 @@
 const { db } = require("../../config/database");
 const { logSuspicious } = require("../../helpers/fail2ban");
+require("dotenv").config();
+
+const ambient = process.env.NODE_ENV || 'development';
 
 async function handleInvite(req, res) {
   try {
@@ -16,7 +19,7 @@ async function handleInvite(req, res) {
 
     if (ramalOrigemExists.rowCount === 0) {
       console.log("❌ Ramal de origem não encontrado ou inválido:", ramalOrigem, "para tenant", tenant);
-      logSuspicious(req.source_address, "Failed INVITE - user not found");
+      if (ambient === 'production') logSuspicious(req.source_address, "Failed INVITE - user not found");
 
       return res.send(403); // Proibido
     }

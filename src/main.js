@@ -5,6 +5,8 @@ const { db } = require('./config/database');
 const { handleRegister } = require('./methods/register');
 const { handleInvite } = require('./methods/invite');
 
+require('./config/proxy').proxyConnected;
+
 const srf = new Srf();
 
 const ambient = process.env.NODE_ENV || 'development';
