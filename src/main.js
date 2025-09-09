@@ -1,4 +1,3 @@
-require('./config/proxy'); // Inicia o proxy UDP
 require('dotenv').config();
 const Srf = require('drachtio-srf');
 const { db } = require('./config/database');

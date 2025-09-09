@@ -19,6 +19,7 @@ async function handleInvite(req, res) {
 
     if (ramalOrigemExists.rowCount === 0) {
       console.log("❌ Ramal de origem não encontrado ou inválido:", ramalOrigem, "para tenant", tenant);
+      if (ambient === 'production') logSuspicious(req.source_address, "Failed INVITE - user not found");
 
       return res.send(403); // Proibido
     }
