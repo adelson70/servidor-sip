@@ -1,3 +1,4 @@
+require('./config/proxy'); // Inicia o proxy UDP
 require('dotenv').config();
 const Srf = require('drachtio-srf');
 const { db } = require('./config/database');
@@ -5,7 +6,6 @@ const { db } = require('./config/database');
 const { handleRegister } = require('./methods/register');
 const { handleInvite } = require('./methods/invite');
 
-require('./config/proxy').proxyConnected;
 
 const srf = new Srf();
 
