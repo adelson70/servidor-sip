@@ -8,20 +8,26 @@ const DRACHTIO_PORT_SIP = parseInt(process.env.DRACHTIO_PORT_SIP || '8453');
 const proxy = dgram.createSocket("udp4");
 
 proxy.on("message", (msg, rinfo) => {
-  console.log(`${rinfo.address}:${rinfo.port}`);
+    console.log(`${rinfo.address}:${rinfo.port}`);
 
-  proxy.send(msg, DRACHTIO_PORT_SIP, DOMAIN, (err) => {
+    proxy.send(msg, DRACHTIO_PORT_SIP, DOMAIN, (err) => {
 
-    if (err) {
-      console.error("Erro ao reenviar mensagem:", err);
-    }
+        if (err) {
+            console.error("Erro ao reenviar mensagem:", err);
+        }
 
-    console.log(`Mensagem reenviada para ${DOMAIN}:${DRACHTIO_PORT_SIP}`);
-  });
+        // Evita loop: ignora mensagens vindas do próprio drachtio
+        if (rinfo.address === "127.0.0.1" && rinfo.port === DRACHTIO_SIP_PORT) {
+            console.log("🔄 Ignorado pacote vindo do próprio drachtio (loop prevention)");
+            return;
+        }
+
+        console.log(`Mensagem reenviada para ${DOMAIN}:${DRACHTIO_PORT_SIP}`);
+    });
 });
 
 const proxyConnected = proxy.bind(5060, () => {
-  console.log("✅ Proxy UDP ativo na porta 5060");
+    console.log("✅ Proxy UDP ativo na porta 5060");
 });
 
 module.exports = { proxyConnected };
