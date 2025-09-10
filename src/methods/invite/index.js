@@ -78,7 +78,7 @@ async function handleInvite(req, res) {
     // console.log("✅ Ramal encontrado:", ramal);
 
     // Aqui você pode enviar para o Asterisk ou continuar com a lógica
-    await sendInviteToAsterisk(req, res, ramal);
+    await sendInviteToAsterisk(req, res, ramalOrigem, ramalDestino, tenant);
 
   } catch (err) {
     console.error("Erro no INVITE:", err);

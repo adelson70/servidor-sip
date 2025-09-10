@@ -6,37 +6,40 @@ const AST_HOST = ambient === 'production' ? process.env.AST_HOST_PROD : process.
 const AST_PORT = parseInt(process.env.AST_PORT || '5070', 10);
 
 /**
- * Ajusta um número/ramal para incluir o tenant no AOR
+ * Monta o URI completo no formato que o Asterisk espera
  */
 function formatAor(ramalNumber, tenant) {
-    return `${ramalNumber}_${tenant}@${AST_HOST}:${AST_PORT}`;
+    return `sip:${ramalNumber}_${tenant}@${AST_HOST}:${AST_PORT}`;
 }
 
-async function sendInviteToAsterisk(req, res, ramal) {
+async function sendInviteToAsterisk(req, res, ramalOrigem, ramalDestino, tenant) {
     try {
         const srf = req.srf;
-        const uri = formatAor(ramal.id.replace(`_${ramal.tenantid}`, ''), ramal.tenantid);
+
+        // Request-URI deve ser o AOR do destino no Asterisk
+        const uri = formatAor(ramalDestino, tenant);
+
+        // Headers devem apontar para o AOR no Asterisk (não para o IP do telefone)
+        const fromHeader = `<sip:${ramalOrigem}_${tenant}@${AST_HOST}>;tag=${req.get('From').split('tag=')[1]}`;
+        const toHeader = `<sip:${ramalDestino}_${tenant}@${AST_HOST}>`;
+
         console.log(`➡️ Repassando INVITE para Asterisk: ${uri}`);
+        console.log('From:', fromHeader);
+        console.log('To:', toHeader);
 
-        // Corrige headers From/To para incluir tenant
-        const fromHeader = req.get('From')?.replace(/<sip:(.*?)@.*?>/, `<sip:$1_${ramal.tenantid}@${AST_HOST}:${AST_PORT}>`);
-        const toHeader = `<sip:${ramal.id}@${AST_HOST}:${AST_PORT}>`; // sempre bate exatamente com AOR do destino
-
-        // Cria a UAC (User Agent Client) para o INVITE
         const uac = await srf.createUAC(uri, {
             headers: {
                 From: fromHeader,
                 To: toHeader,
                 'Call-ID': req.get('Call-ID'),
                 CSeq: req.get('CSeq'),
-                Contact: req.get('Contact') || undefined
+                Contact: req.get('Contact') // mantém o IP real do chamador para RTP
             },
             localSdp: req.body
         });
 
         console.log(`⬅️ Chamada aceita pelo Asterisk: ${uac.status} ${uac.reason}`);
 
-        // Repassa a resposta para o chamador
         res.send(uac.status, {
             headers: uac.getHeaders(),
             body: uac.getBody()
