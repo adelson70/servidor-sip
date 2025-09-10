@@ -26,6 +26,7 @@ async function sendInviteToAsterisk(req, res, ramalOrigem, ramalDestino, tenant)
         console.log(`➡️ Repassando INVITE para Asterisk: ${uri}`);
         console.log('From:', fromHeader);
         console.log('To:', toHeader);
+        console.log('Contact:', req.get('Contact'));
 
         const uac = await srf.createUAC(uri, {
             headers: {
@@ -33,7 +34,7 @@ async function sendInviteToAsterisk(req, res, ramalOrigem, ramalDestino, tenant)
                 To: toHeader,
                 'Call-ID': req.get('Call-ID'),
                 CSeq: req.get('CSeq'),
-                Contact: req.get('Contact') // mantém o IP real do chamador para RTP
+                Contact: req.get('Contact')
             },
             localSdp: req.body
         });
