@@ -6,23 +6,30 @@ const AST_HOST = ambient === 'production' ? process.env.AST_HOST_PROD : process.
 const AST_PORT = parseInt(process.env.AST_PORT || '5070', 10);
 
 /**
- * Envia INVITE para o Asterisk garantindo que o To tenha o tenant
+ * Ajusta um número/ramal para incluir o tenant no AOR
  */
-async function sendInviteToAsterisk(req, res, ramal, tenant) {
+function formatAor(ramalNumber, tenant) {
+    return `${ramalNumber}_${tenant}@${AST_HOST}:${AST_PORT}`;
+}
+
+async function sendInviteToAsterisk(req, res, ramal) {
     try {
         const srf = req.srf;
-
-        // Adiciona tenant ao AOR
-        const aorWithTenant = `${ramal.number}_${tenant}`;
-        const uri = ramal.uri.replace(/^[^@]+/, aorWithTenant).replace(/@.*/, `@${AST_HOST}:${AST_PORT}`);
+        const uri = formatAor(ramal.id.replace(`_${ramal.tenantid}`, ''), ramal.tenantid);
         console.log(`➡️ Repassando INVITE para Asterisk: ${uri}`);
+
+        console.log('ramal', ramal);
+        console.log('contact', req.get('Contact'));
+
+        // Corrige headers From/To para incluir tenant
+        const fromHeader = req.get('From')?.replace(/<sip:(.*?)@.*?>/, `<sip:$1_${ramal.tenantid}@${AST_HOST}:${AST_PORT}>`);
+        const toHeader = `<sip:${ramal.id}@${AST_HOST}:${AST_PORT}>`; // sempre bate exatamente com AOR do destino
 
         // Cria a UAC (User Agent Client) para o INVITE
         const uac = await srf.createUAC(uri, {
             headers: {
-                // Asterisk aceita tanto "From" quanto "from", mas é padrão usar capitalize
-                From: req.get('From'),
-                To: req.get('To').replace(ramal.number, aorWithTenant), // garante que o To tenha tenant
+                From: fromHeader,
+                To: toHeader,
                 'Call-ID': req.get('Call-ID'),
                 CSeq: req.get('CSeq'),
                 Contact: req.get('Contact') || undefined
