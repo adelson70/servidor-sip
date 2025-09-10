@@ -69,6 +69,7 @@ async function handleRegister(req, res) {
         id = EXCLUDED.id,
         uri = EXCLUDED.uri,
         expiration_time = EXCLUDED.expiration_time,
+        qualify_frequency = 30,
         user_agent = EXCLUDED.user_agent,
         via_addr = EXCLUDED.via_addr,
         via_port = EXCLUDED.via_port,
