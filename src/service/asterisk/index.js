@@ -26,6 +26,7 @@ async function sendInviteToAsterisk(req, res, ramalOrigem, ramalDestino, tenant)
         console.log('From:', fromHeader);
         console.log('To:', toHeader);
         console.log('Contact:', req.get('Contact'));
+        console.log('uri:', uri);
 
         const uac = await srf.createUAC(uri, {
             headers: {
