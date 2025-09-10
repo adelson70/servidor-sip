@@ -60,9 +60,6 @@ async function handleRegister(req, res) {
     const endpoint = authParams.username;
     const contactId = `${endpoint}@${viaAddr}:${viaPort}`;
 
-    console.log('contactId', contactId);
-    console.log('contactUri', contactUri);
-
     await db.query(
       `
       INSERT INTO ps_contacts (id, uri, expiration_time, user_agent, via_addr, via_port, call_id, endpoint)
