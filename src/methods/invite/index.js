@@ -2,11 +2,13 @@ const { db } = require("../../config/database");
 const { logSuspicious } = require("../../helpers/fail2ban");
 require("dotenv").config();
 
+const { sendInviteToAsterisk } = require("../../service/asterisk");
+
 const ambient = process.env.NODE_ENV || 'development';
 
 async function handleInvite(req, res) {
   try {
-    console.log('📞 INVITE', req.msg.headers);
+    // console.log('📞 INVITE', req.msg.headers);
 
     // Extrai ramal de origem e tenant
     const origemFull = req.get('From').match(/sip:([^@]+)@/)[1];
@@ -73,10 +75,10 @@ async function handleInvite(req, res) {
       return res.send(480); // Temporarily Unavailable
     }
 
-    console.log("✅ Ramal encontrado:", ramal);
+    // console.log("✅ Ramal encontrado:", ramal);
 
     // Aqui você pode enviar para o Asterisk ou continuar com a lógica
-    // await sendToAsterisk(req.msg);
+    await sendInviteToAsterisk(req, res, ramal);
 
   } catch (err) {
     console.error("Erro no INVITE:", err);
