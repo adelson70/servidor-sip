@@ -48,8 +48,8 @@ async function handleRegister(req, res) {
     const expires = expiresHeader
       ? parseInt(expiresHeader, 10)
       : contactExpiresMatch
-      ? parseInt(contactExpiresMatch[1], 10)
-      : 3600;
+        ? parseInt(contactExpiresMatch[1], 10)
+        : 3600;
 
     const expirationTime = Date.now() + expires * 1000;
     const contactUri = contactHeader.match(/<([^>]+)>/)?.[1] || "";
@@ -59,6 +59,9 @@ async function handleRegister(req, res) {
     const callId = req.msg.headers["call-id"] || "";
     const endpoint = authParams.username;
     const contactId = `${endpoint}@${viaAddr}:${viaPort}`;
+
+    console.log('contactId', contactId);
+    console.log('contactUri', contactUri);
 
     await db.query(
       `
