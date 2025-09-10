@@ -1,8 +1,7 @@
 // src/services/asterisk.js
 require("dotenv").config();
 
-const ambient = process.env.NODE_ENV || 'development';
-const AST_HOST = ambient === 'production' ? process.env.AST_HOST_PROD : process.env.AST_HOST_DEV;
+const AST_HOST = process.env.AST_HOST
 const AST_PORT = parseInt(process.env.AST_PORT || '5070', 10);
 
 /**
