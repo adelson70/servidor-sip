@@ -18,9 +18,6 @@ async function sendInviteToAsterisk(req, res, ramal) {
         const uri = formatAor(ramal.id.replace(`_${ramal.tenantid}`, ''), ramal.tenantid);
         console.log(`➡️ Repassando INVITE para Asterisk: ${uri}`);
 
-        console.log('ramal', ramal);
-        console.log('contact', req.get('Contact'));
-
         // Corrige headers From/To para incluir tenant
         const fromHeader = req.get('From')?.replace(/<sip:(.*?)@.*?>/, `<sip:$1_${ramal.tenantid}@${AST_HOST}:${AST_PORT}>`);
         const toHeader = `<sip:${ramal.id}@${AST_HOST}:${AST_PORT}>`; // sempre bate exatamente com AOR do destino
